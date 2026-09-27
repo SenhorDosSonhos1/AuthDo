@@ -264,3 +264,4 @@ $RECYCLE.BIN/
 
 # Generated using ignr.py - github.com/Antrikshy/ignr.py
 .vscode/
+database.db
