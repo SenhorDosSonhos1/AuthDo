@@ -1,0 +1,33 @@
+[project]
+name = "todo"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "SenhorDosSonhos1",email = "marcelosamu2002@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13, <4.0"
+dependencies = [
+    "fastapi[standard] (>=0.141.1,<0.142.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.16.9,<0.17.0)",
+    "taskipy (>=1.14.1,<2.0.0)"
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I"] # Ativa erros básicos (E), falhas lógicas (F) e organiza imports (I)
+
+[tool.taskipy.tasks]
+dev = "fastapi dev main.py"
+lint = "ruff check"
+format = "ruff format"
+fix = "ruff check --fix"
