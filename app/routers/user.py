@@ -4,6 +4,7 @@ from app.database import get_db
 from app.models.user import User
 from sqlalchemy import select
 from app.schemas.user import UserCreate, UserResponse, UserPatch
+from app.core.security import verify_password, get_password_hash
 
 router = APIRouter(
     tags=["Users"],
@@ -23,7 +24,8 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="O email já existe no nosso servidor.",
         )
-    user = User(username=data.username, email=data.email, password=data.password)
+    password_hashed = get_password_hash(data.password)
+    user = User(username=data.username, email=data.email, password=password_hashed)
     db.add(user)
     db.commit()
     db.refresh(user)
