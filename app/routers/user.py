@@ -4,7 +4,8 @@ from app.database import get_db
 from app.models.user import User
 from sqlalchemy import select
 from app.schemas.user import UserCreate, UserResponse, UserPatch
-from app.core.security import verify_password, get_password_hash
+from app.core.security import get_password_hash
+from app.core.security import get_current_user
 
 router = APIRouter(
     tags=["Users"],
@@ -37,7 +38,7 @@ def list_users(db: Session = Depends(get_db)):
     return db.scalars(select(User)).all()
 
 
-@router.get("/user_id", status_code=status.HTTP_200_OK, response_model=UserResponse)
+@router.get("/{user_id}", status_code=status.HTTP_200_OK, response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.scalars(select(User).where(User.id == user_id)).first()
 
@@ -50,33 +51,27 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch("", status_code=status.HTTP_200_OK, response_model=UserResponse)
-def updrade_user(user_id: int, data: UserPatch, db: Session = Depends(get_db)):
-    user = db.scalars(select(User).where(User.id == user_id)).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Usuario não encontrado"
-        )
-
+def upgrade_user(
+    data: UserPatch,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     if not data.password == data.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="As senhas não coincidem."
         )
-    user.password = data.password
+
+    password_hashed = get_password_hash(data.password)
+    current_user.password = password_hashed
 
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(current_user)
+    return current_user
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id, db: Session = Depends(get_db)):
-    user = db.get(User, user_id)
+def delete_user(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Usuario não encontrado"
-        )
-
-    db.delete(user)
+    db.delete(current_user)
     db.commit()
     return None
