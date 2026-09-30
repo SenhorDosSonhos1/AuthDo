@@ -57,7 +57,7 @@ async def get_current_user(
 
         if not email:
             raise credentials_exception
-    except jwt.DecodeError:
+    except (jwt.DecodeError, jwt.ExpiredSignatureError):
         raise credentials_exception
 
     user = db.scalar(select(User).where(User.email == email))
